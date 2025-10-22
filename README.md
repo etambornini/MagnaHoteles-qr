@@ -1,5 +1,4 @@
-# Contenido del README.md
-readme_content = """# 🏨 Magna Hoteles – Proyecto Fullstack
+# 🏨 Magna Hoteles – Proyecto Fullstack
 
 Aplicación **multi-tenant** para la gestión de menús digitales por hotel.  
 Cada hotel puede administrar su propio catálogo de **categorías**, **productos**, **atributos personalizados**, **variantes** y **bandejas**, todo reutilizando una misma base backend.
@@ -169,7 +168,7 @@ También podés:
 ## ✨ Autor
 
 **Desarrollado por Elías**  
-> “Codeá limpio, validá todo y dormí tranquilo 😴”
+> “Compilo Sueños ✨ aunque a veces cuesta dormirse 😴🤣”
 
 ---
 
