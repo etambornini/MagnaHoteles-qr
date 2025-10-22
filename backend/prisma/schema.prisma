@@ -1,0 +1,243 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum AttributeDataType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  JSON
+}
+
+enum VariantSelectionType {
+  SINGLE
+  MULTIPLE
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+}
+
+model Hotel {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String
+  description String?
+  timeZone    String?    @map("timezone")
+  metadata    Json?
+  imgQr       String?    @map("img_qr")
+
+  categories  Category[]
+  products    Product[]
+  users       User[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([slug])
+}
+
+model Category {
+  id             String                        @id @default(cuid())
+  hotelId        String
+  name           String
+  key            String
+  description    String?
+  unitOfMeasure  String?
+  parentId       String?
+
+  hotel          Hotel                         @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  parent         Category?                     @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children       Category[]                    @relation("CategoryHierarchy")
+  attributes     CategoryAttributeDefinition[]
+  productLinks   ProductCategory[]
+
+  createdAt      DateTime                      @default(now())
+  updatedAt      DateTime                      @updatedAt
+
+  @@unique([hotelId, key])
+  @@index([hotelId, name])
+}
+
+model CategoryAttributeDefinition {
+  id            String                   @id @default(cuid())
+  categoryId    String
+  name          String
+  key           String
+  type          AttributeDataType
+  isRequired    Boolean                  @default(false)
+  unitOfMeasure String?
+
+  category      Category                 @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  options       CategoryAttributeOption[]
+  productValues ProductAttributeValue[]
+
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  @@unique([categoryId, key])
+}
+
+model CategoryAttributeOption {
+  id           String                     @id @default(cuid())
+  definitionId String
+  label        String
+  value        String
+  sortOrder    Int                        @default(0)
+
+  definition   CategoryAttributeDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+
+  @@unique([definitionId, value])
+}
+
+model Product {
+  id                String                    @id @default(cuid())
+  hotelId           String
+  name              String
+  slug              String
+  description       String?
+  isActive          Boolean                   @default(true)
+  stock             Int                       @default(0)
+  price             Decimal?                  @db.Decimal(10, 2)
+  images            Json
+  baseUnit          String?
+
+  hotel             Hotel                     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  categories        ProductCategory[]
+  variantGroups     ProductVariantGroup[]
+  attributeValues   ProductAttributeValue[]
+  customAttributes  ProductCustomAttribute[]
+  bundleItems       ProductBundleItem[]       @relation("BundleToItem")
+  bundles           ProductBundleItem[]       @relation("ProductToBundle")
+
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+
+  @@unique([hotelId, slug])
+  @@index([hotelId, name])
+}
+
+model ProductCategory {
+  productId  String
+  categoryId String
+  assignedAt DateTime @default(now())
+
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+}
+
+model ProductVariantGroup {
+  id             String                 @id @default(cuid())
+  productId      String
+  name           String
+  key            String
+  selectionType  VariantSelectionType   @default(SINGLE)
+  isRequired     Boolean                @default(false)
+
+  product        Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options        ProductVariantOption[]
+
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@unique([productId, key])
+}
+
+model ProductVariantOption {
+  id          String               @id @default(cuid())
+  groupId     String
+  name        String
+  value       String
+  priceDelta  Decimal?             @db.Decimal(10, 2)
+  isAvailable Boolean              @default(true)
+  sortOrder   Int                  @default(0)
+
+  group       ProductVariantGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@unique([groupId, value])
+}
+
+model ProductAttributeValue {
+  id          String                       @id @default(cuid())
+  productId   String
+  attributeId String
+  value       Json
+
+  product     Product                      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attribute   CategoryAttributeDefinition  @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @updatedAt
+
+  @@unique([productId, attributeId])
+}
+
+model ProductCustomAttribute {
+  id            String            @id @default(cuid())
+  productId     String
+  name          String
+  key           String
+  type          AttributeDataType
+  value         Json
+  unitOfMeasure String?
+
+  product       Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([productId, key])
+}
+
+model ProductBundleItem {
+  id               String   @id @default(cuid())
+  parentProductId  String
+  itemProductId    String
+  quantity         Int      @default(1)
+
+  parent           Product  @relation("BundleToItem", fields: [parentProductId], references: [id], onDelete: Cascade)
+  item             Product  @relation("ProductToBundle", fields: [itemProductId], references: [id])
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([parentProductId, itemProductId])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String
+  passwordHash  String
+  role          UserRole  @default(MANAGER)
+  hotelId       String?
+
+  hotel         Hotel?    @relation(fields: [hotelId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([email])
+  @@index([role])
+  @@index([hotelId])
+}
