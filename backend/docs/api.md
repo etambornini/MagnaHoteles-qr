@@ -1,74 +1,100 @@
-# API Magna Hoteles
+# 🧩 API Magna Hoteles
 
-Base URL por defecto: `http://localhost:4000/api`
+Base por defecto:  
+`http://localhost:4000/api`
 
-## Autenticación de administradores
-
-Los administradores de hotel deben autenticarse para gestionar su menú.
-
-- **POST** `/auth/register`
-  ```json
-  {
-    "email": "admin@magna.com",
-    "password": "superseguro",
-    "role": "ADMIN"
-  }
-  ```
-  Campos:
-  - `role`: `ADMIN` o `MANAGER` (por defecto es `MANAGER`).
-  - `hotelSlug`: obligatorio si el rol es `MANAGER` para asociar el usuario al hotel.
-
-  Ejemplo para registrar a un gerente:
-  ```json
-  {
-    "email": "gerente@magna.com",
-    "password": "superseguro",
-    "role": "MANAGER",
-    "hotelSlug": "magna-riviera"
-  }
-  ```
-
-- **POST** `/auth/login`
-  ```json
-  {
-    "email": "admin@magna.com",
-    "password": "superseguro"
-  }
-  ```
-  Devuelve un `token` JWT. Inclúyelo en las peticiones privadas usando el encabezado `Authorization: Bearer <token>`.
-
-## Roles y middlewares
-
-- **ADMIN**: Puede crear, modificar y eliminar hoteles y contenido. Para operar sobre categorías/productos debe indicar el hotel objetivo mediante `x-hotel-id` (o `hotelId` en query) con el `id` o `slug` del hotel.
-- **MANAGER**: Gestiona todo el contenido de su hotel asignado (se deriva del token, no se necesita encabezado extra).
-- **PUBLIC**: Accede en modo lectura vía `/public`, indicando el hotel con `x-hotel-id` o `hotelId` (acepta `id` o `slug`).
+API para manejar los menús, productos y categorías de distintos hoteles desde un mismo backend.  
+Cada hotel tiene su propio universo de datos, pero todo corre sobre la misma base.
 
 ---
 
-## Endpoints administradores (`/admin`)
+## 🔐 Autenticación de administradores
 
-> Requiere `Authorization: Bearer <token>`.
-> Si el usuario tiene rol `ADMIN`, debe indicar el hotel objetivo con `x-hotel-id` (o query `hotelId`) utilizando el `id` o `slug` del hotel cuando opere sobre categorías o productos.
+Para que los administradores o gerentes puedan manejar su contenido, primero tienen que loguearse.
 
-### Hoteles (`/admin/hotels`)
+### Registro
 
-- **GET** `/admin/hotels` — listado con soporte de búsqueda `search`, paginación `page`, `pageSize`.
-- **POST** `/admin/hotels` — crear hotel.
-- **GET** `/admin/hotels/:id` — obtener detalle.
-- **PATCH** `/admin/hotels/:id` — actualizar campos parciales.
-- **DELETE** `/admin/hotels/:id` — eliminar hotel.
+**POST** `/auth/register`
+```json
+{
+  "email": "admin@magna.com",
+  "password": "superseguro",
+  "role": "ADMIN"
+}
+```
 
-### Categorías (`/admin/categories`)
+Campos:
+- `role`: puede ser `ADMIN` o `MANAGER` (si no ponés nada, arranca como `MANAGER`).
+- `hotelSlug`: obligatorio solo si el rol es `MANAGER`, para que quede atado al hotel.
 
-> `ADMIN`: requiere `x-hotel-id` (o `hotelId`) con el `id`/`slug` del hotel. `MANAGER`: opera sobre su hotel asignado sin encabezado adicional.
+Ejemplo registrando un gerente:
 
-- **GET** `/admin/categories` — lista paginada. Query soportada: `search`, `parentId`, `includeChildren`, `includeAttributes`, `page`, `pageSize`.
+```json
+{
+  "email": "gerente@magna.com",
+  "password": "superseguro",
+  "role": "MANAGER",
+  "hotelSlug": "magna-riviera"
+}
+```
+
+### Login
+
+**POST** `/auth/login`
+```json
+{
+  "email": "admin@magna.com",
+  "password": "superseguro"
+}
+```
+
+Si todo sale bien, te devuelve un token JWT.  
+Guardalo y mandalo en cada request privada con:
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+## 🎭 Roles y middlewares
+
+- **ADMIN** → puede crear, editar o borrar hoteles y todo su contenido.  
+  Si quiere tocar categorías o productos, tiene que mandar el hotel destino con `x-hotel-id` o `?hotelId=` (id o slug).
+- **MANAGER** → gestiona su propio hotel (se deduce del token, no necesita mandar encabezados extra).
+- **PUBLIC** → acceso de lectura a `/public`, pasando el `x-hotel-id` o `hotelId` para indicar el hotel.
+
+---
+
+## 🧱 Endpoints administrativos (`/admin`)
+
+> Requieren `Authorization: Bearer <token>`  
+> Si sos `ADMIN`, no te olvides de mandar el hotel al que apuntás con `x-hotel-id` o `?hotelId=slug`.
+
+---
+
+### 🏨 Hoteles (`/admin/hotels`)
+
+- **GET** `/admin/hotels` → listado con búsqueda (`search`) y paginación (`page`, `pageSize`)  
+- **POST** `/admin/hotels` → crear un nuevo hotel  
+- **GET** `/admin/hotels/:id` → detalle de un hotel  
+- **PATCH** `/admin/hotels/:id` → actualizar datos puntuales  
+- **DELETE** `/admin/hotels/:id` → eliminar hotel (chau hotel 👋)
+
+---
+
+### 📂 Categorías (`/admin/categories`)
+
+> `ADMIN`: tiene que indicar el hotel (`x-hotel-id` o `hotelId`)  
+> `MANAGER`: ya está vinculado, no hace falta.
+
+- **GET** `/admin/categories` → lista paginada con filtros (`search`, `parentId`, `includeChildren`, `includeAttributes`, `page`, `pageSize`)  
 - **POST** `/admin/categories`
   ```json
   {
     "name": "Viandas",
     "key": "viandas",
-    "description": "Viandas listas",
+    "description": "Viandas listas para llevar",
     "attributes": [
       {
         "name": "Incluye queso",
@@ -79,20 +105,24 @@ Los administradores de hotel deben autenticarse para gestionar su menú.
   }
   ```
 - **GET** `/admin/categories/:id?includeChildren=true&includeAttributes=true`
-- **PATCH** `/admin/categories/:id` — actualiza cualquier campo.
-- **DELETE** `/admin/categories/:id`
-- **POST** `/admin/categories/:id/attributes` — crear definiciones de atributos.
+- **PATCH** `/admin/categories/:id` → actualiza lo que necesites  
+- **DELETE** `/admin/categories/:id` → borra la categoría  
+- **POST** `/admin/categories/:id/attributes` → crear atributos personalizados  
 - **PATCH** `/admin/categories/:id/attributes/:attributeId`
 - **DELETE** `/admin/categories/:id/attributes/:attributeId`
 - **POST** `/admin/categories/:id/attributes/:attributeId/options`
 - **PATCH** `/admin/categories/:id/attributes/:attributeId/options/:optionId`
 - **DELETE** `/admin/categories/:id/attributes/:attributeId/options/:optionId`
 
-### Productos (`/admin/products`)
+---
 
-> `ADMIN`: indicar hotel con `x-hotel-id`/`hotelId`. `MANAGER`: usa su hotel asignado automáticamente.
+### 🍝 Productos (`/admin/products`)
 
-- **GET** `/admin/products` — filtros disponibles: `search`, `categoryIds` (CSV), `isActive`, `minPrice`, `maxPrice`, `variantOptionId`, `attributes` (JSON array), `page`, `pageSize`, `includeCategories`, `includeVariants`, `includeAttributes`, `includeBundles`.
+> `ADMIN`: indicar hotel con `x-hotel-id` o `hotelId`.  
+> `MANAGER`: ya se asocia automáticamente.
+
+- **GET** `/admin/products` → admite filtros:  
+  `search`, `categoryIds`, `isActive`, `minPrice`, `maxPrice`, `variantOptionId`, `attributes` (JSON), `page`, `pageSize`, `includeCategories`, `includeVariants`, `includeAttributes`, `includeBundles`.
 - **POST** `/admin/products`
   ```json
   {
@@ -105,43 +135,62 @@ Los administradores de hotel deben autenticarse para gestionar su menú.
     "categoryIds": ["<category-id>"]
   }
   ```
-  Es posible incluir `variantGroups`, `attributeValues`, `customAttributes`, `bundleItems`.
+  También se pueden incluir `variantGroups`, `attributeValues`, `customAttributes`, `bundleItems`.
 - **GET** `/admin/products/:id`
-- **PATCH** `/admin/products/:id` — reemplaza colecciones si se envían (`categoryIds`, `variantGroups`, etc.).
-- **DELETE** `/admin/products/:id`
+- **PATCH** `/admin/products/:id` → reemplaza colecciones si se mandan (`categoryIds`, `variantGroups`, etc.)
+- **DELETE** `/admin/products/:id` → elimina el producto
 
 ---
 
-## Endpoints públicos (`/public`)
+## 🌎 Endpoints públicos (`/public`)
 
-> Requiere encabezado `x-hotel-id` (o query `hotelId`). No precisan autenticación.
-> El valor puede ser el `id` o el `slug` del hotel.
+> No requieren autenticación, pero sí indicar el hotel (`x-hotel-id` o `?hotelId=`).  
+> Puede ser el ID o el slug.
 
 ### Categorías públicas (`/public/categories`)
 
-- **GET** `/public/categories` — acepta las mismas querys de listado que la versión administrativa.
-- **GET** `/public/categories/:id` — parámetros opcionales `includeChildren`, `includeAttributes`.
+- **GET** `/public/categories` → mismos filtros que la versión admin  
+- **GET** `/public/categories/:id` → acepta `includeChildren`, `includeAttributes`
 
 ### Productos públicos (`/public/products`)
 
-- **GET** `/public/products` — mismos filtros soportados que en `/admin/products`.
-- **GET** `/public/products/:id` — flags `includeCategories`, `includeVariants`, `includeAttributes`, `includeBundles`.
+- **GET** `/public/products` → mismos filtros que `/admin/products`  
+- **GET** `/public/products/:id` → flags `includeCategories`, `includeVariants`, `includeAttributes`, `includeBundles`
 
 ---
 
-## Formato de errores
+## 🚨 Formato de errores
 
-Las respuestas de validación usan:
+Cuando algo falla en la validación, la API responde así:
+
 ```json
 {
   "message": "Validation failed",
   "issues": [
     {
       "path": ["body", "name"],
-      "message": "String must contain at least 2 character(s)"
+      "message": "El nombre tiene que tener al menos 2 caracteres"
     }
   ]
 }
 ```
 
-Consulta `prisma/schema.prisma` para conocer todos los modelos y relaciones persistentes.
+Simple, claro y útil para debuggear sin volverse loco.
+
+---
+
+## 🧩 Modelos y base
+
+Si querés ver cómo está armado el esquema completo, mirate el archivo:  
+`prisma/schema.prisma`
+
+Ahí vas a encontrar todos los modelos, relaciones y claves foráneas.
+
+---
+
+## ✨ Autor
+
+**Hecho por Elías**  
+> “Donde hay un bug, hay una historia para contar.” 🧉
+
+---

@@ -1,13 +1,6 @@
-# Magna Hoteles – Backend
+# Magna Hoteles – Backend 🧱
 
 API multi-tenant para gestión de menús por hotel. Cada hotel puede administrar su catálogo de categorías, productos, atributos personalizados, variantes y bandejas reutilizando un mismo backend.
-
-## 🧱 Stack
-
-- Node.js + Express 5 (TypeScript)
-- Prisma ORM (MySQL)
-- Zod para validaciones
-- Arquitectura modular (features en `src/modules`)
 
 ## 🚀 Puesta en marcha
 
@@ -39,13 +32,8 @@ npm run build
 npm start
 ```
 
-### Datos de ejemplo
 
-El seed crea el hotel “Magna Riviera”, categorías “Viandas” / “Pastas” y el producto “Ravioles”.
-
-```bash
-npm run prisma:seed
-```
+# Consulta `docs/api.md` para ejemplos detallados de uso.
 
 ## 📂 Estructura relevante
 
@@ -85,10 +73,5 @@ Los administradores gestionan su menú mediante `/api/admin/**` usando `Authoriz
 - `attributes` (JSON array: `[{ "attributeId": "...", "value": ... }]`)
 - Flags `includeCategories`, `includeVariants`, `includeAttributes`, `includeBundles`
 
-## 🧪 Próximos pasos sugeridos
 
-- Añadir política de auth/roles según necesidades.
-- Automatizar pruebas (unitarias/integración) para servicios críticos.
-- Exponer métricas/observabilidad (p. ej. Prometheus).
 
-Consulta `docs/api.md` para ejemplos detallados de uso.
