@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const sourceDir = path.resolve(__dirname, "../src/generated/prisma");
-const targetDir = path.resolve(__dirname, "../dist/generated/prisma");
+const targetDir = path.resolve(__dirname, "../dist/src/generated/prisma");
 
 if (!fs.existsSync(sourceDir)) {
   console.error(`[copyPrisma] Source directory not found: ${sourceDir}`);
