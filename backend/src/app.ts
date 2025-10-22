@@ -1,4 +1,5 @@
 import path from "node:path";
+import fs from "node:fs";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -20,6 +21,21 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api", router);
+
+const frontendDir = path.resolve(process.cwd(), "../frontend/dist");
+
+if (fs.existsSync(frontendDir)) {
+  app.use(express.static(frontendDir));
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) {
+      return next();
+    }
+    if (req.method !== "GET") {
+      return next();
+    }
+    res.sendFile(path.join(frontendDir, "index.html"));
+  });
+}
 
 app.use(errorHandler);
 
