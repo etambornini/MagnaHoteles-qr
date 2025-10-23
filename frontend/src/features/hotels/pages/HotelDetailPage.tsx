@@ -260,14 +260,14 @@ export const HotelDetailPage = () => {
         <div className="relative isolate">
           <div className="absolute right-10 top-10 h-48 w-48 rounded-full bg-red-600/10 blur-3xl" />
           <div className="absolute -left-16 bottom-0 h-64 w-64 rounded-full bg-red-600/10 blur-[120px]" />
-          <div className="relative grid gap-10 px-8 py-12 lg:grid-cols-[1.2fr,1fr] lg:px-12 lg:py-16">
+          <div className="relative grid gap-10 px-3 py-12 lg:grid-cols-[1.2fr,1fr] lg:px-12 lg:py-16">
             <div className="space-y-4">
               <span className="inline-flex items-center gap-2 rounded-full border border-red-500/40 bg-red-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-red-200">
                 hotel
                 <span className="text-red-100/70">{hotel.slug}</span>
               </span>
               <h1 className="text-3xl font-semibold text-white sm:text-4xl">{hotel.name}</h1>
-              <p className="text-base text-gray-300">
+              <p className="text-sm md:text-base  text-gray-300 tracking-wide">
                 {hotel.description ??
                   "Disfruta de nuestro catálogo digital con productos seleccionados para ofrecer experiencias memorables a tus huéspedes."}
               </p>
