@@ -446,14 +446,14 @@ export const HotelDetailPage = () => {
                     </p>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-red-300">{formatCurrency(product.price)}</span>
-                      <span className="text-xs text-gray-400">Stock: {product.stock ?? 0}</span>
+                      {/* <span className="text-xs text-gray-400">Stock: {product.stock ?? 0}</span> */}
                     </div>
-                    <button
+                    {/* <button
                       type="button"
                       className="mt-2 inline-flex items-center justify-center rounded-full border border-red-500/60 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-red-200 transition hover:bg-red-600/30"
                     >
                       Solicitar
-                    </button>
+                    </button> */}
                   </div>
                 </article>
               ))}

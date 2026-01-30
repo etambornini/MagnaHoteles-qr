@@ -275,7 +275,7 @@ export const AdminProductsPage = () => {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-400">Precio (ARS)</label>
+            <label className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-400">Precio</label>
             <input
               type="number"
               step="0.01"
